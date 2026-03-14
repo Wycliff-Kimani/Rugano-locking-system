@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from app.routers import admin, tenants, payments, access
 import os
 
@@ -34,8 +35,8 @@ app.include_router(access.router, prefix="/door", tags=["Door Access"])
 
 # Root redirect
 @app.get("/")
-async def root(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+async def root():
+    return RedirectResponse(url="/admin/login")
 
 @app.get("/health")
 async def health():
