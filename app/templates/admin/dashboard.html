@@ -28,7 +28,7 @@ block page_title %}Dashboard{% endblock %} {% block content %}
   <div
     style="
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
       gap: 12px;
     "
   >
@@ -70,107 +70,95 @@ block page_title %}Dashboard{% endblock %} {% block content %}
   {% endif %}
 </div>
 
-<!-- RECENT PAYMENTS + LOGS -->
-<div class="dash-grid">
-  <!-- RECENT PAYMENTS -->
-  <div class="card">
-    <div class="card-title">Recent Payments</div>
-    {% if recent_payments %}
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Unit</th>
-            <th>Amount</th>
-            <th>Days</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for p in recent_payments %}
-          <tr>
-            <td>{{ p.account_ref or "—" }}</td>
-            <td style="color: #4ade80">KES {{ "{:,.0f}".format(p.amount) }}</td>
-            <td>{{ p.days_granted }} days</td>
-            <td style="color: #64748b; font-size: 12px">
-              {{ p.paid_at[:10] if p.paid_at else "—" }}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    <div style="margin-top: 16px">
-      <a href="/admin/payments" style="color: #4ade80; font-size: 13px"
-        >View all payments →</a
-      >
-    </div>
-    {% else %}
-    <p style="color: #64748b; font-size: 14px">No payments recorded yet.</p>
-    {% endif %}
+<!-- RECENT PAYMENTS -->
+<div class="card">
+  <div class="card-title">Recent Payments</div>
+  {% if recent_payments %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Unit</th>
+          <th>Amount</th>
+          <th>Days</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in recent_payments %}
+        <tr>
+          <td>{{ p.account_ref or "—" }}</td>
+          <td style="color: #4ade80">KES {{ "{:,.0f}".format(p.amount) }}</td>
+          <td>{{ p.days_granted }} days</td>
+          <td style="color: #64748b; font-size: 12px">
+            {{ p.paid_at[:10] if p.paid_at else "—" }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
+  <div style="margin-top: 16px">
+    <a href="/admin/payments" style="color: #4ade80; font-size: 13px"
+      >View all payments →</a
+    >
+  </div>
+  {% else %}
+  <p style="color: #64748b; font-size: 14px">No payments recorded yet.</p>
+  {% endif %}
+</div>
 
-  <!-- RECENT ACCESS LOGS -->
-  <div class="card">
-    <div class="card-title">Recent Access Events</div>
-    {% if recent_logs %}
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Unit</th>
-            <th>Event</th>
-            <th>Time</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for log in recent_logs %}
-          <tr>
-            <td>{{ log.units.unit_number if log.units else "—" }}</td>
-            <td>
-              {% if log.event_type == "granted" %}
-              <span class="badge-green">Granted</span>
-              {% elif log.event_type == "denied" %}
-              <span class="badge-red">Denied</span>
-              {% elif log.event_type == "manual_unlock" %}
-              <span class="badge-yellow">Manual</span>
-              {% else %}
-              <span class="badge-gray">{{ log.event_type }}</span>
-              {% endif %}
-            </td>
-            <td style="color: #64748b; font-size: 12px">
-              {{ log.logged_at[:16].replace("T"," ") if log.logged_at else "—"
-              }}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    <div style="margin-top: 16px">
-      <a href="/admin/logs" style="color: #4ade80; font-size: 13px"
-        >View all logs →</a
-      >
-    </div>
-    {% else %}
-    <p style="color: #64748b; font-size: 14px">
-      No access events recorded yet.
-    </p>
-    {% endif %}
+<!-- RECENT ACCESS EVENTS -->
+<div class="card">
+  <div class="card-title">Recent Access Events</div>
+  {% if recent_logs %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Unit</th>
+          <th>Event</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in recent_logs %}
+        <tr>
+          <td>{{ log.units.unit_number if log.units else "—" }}</td>
+          <td>
+            {% if log.event_type == "granted" %}
+            <span class="badge-green">Granted</span>
+            {% elif log.event_type == "denied" %}
+            <span class="badge-red">Denied</span>
+            {% elif log.event_type == "manual_unlock" %}
+            <span class="badge-yellow">Manual</span>
+            {% else %}
+            <span class="badge-gray">{{ log.event_type }}</span>
+            {% endif %}
+          </td>
+          <td style="color: #64748b; font-size: 12px">
+            {{ log.logged_at[:16].replace("T"," ") if log.logged_at else "—" }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
+  <div style="margin-top: 16px">
+    <a href="/admin/logs" style="color: #4ade80; font-size: 13px"
+      >View all logs →</a
+    >
+  </div>
+  {% else %}
+  <p style="color: #64748b; font-size: 14px">No access events recorded yet.</p>
+  {% endif %}
 </div>
 
 {% endblock %} {% block extra_styles %}
 <style>
-  .dash-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-  }
-  @media (max-width: 768px) {
-    .dash-grid {
-      grid-template-columns: 1fr;
-    }
+  /* Prevent the whole page from scrolling sideways */
+  body {
+    overflow-x: hidden;
   }
 </style>
 {% endblock %} {% block scripts %}
