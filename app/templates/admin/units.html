@@ -24,51 +24,53 @@ page_title %}Units{% endblock %} {% block content %}
 <div class="card">
   <div class="card-title">All Units</div>
   {% if units %}
-  <table>
-    <thead>
-      <tr>
-        <th>Unit</th>
-        <th>Monthly Rent</th>
-        <th>Daily Cost</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for unit in units %}
-      <tr>
-        <td>
-          <span style="font-size: 18px; font-weight: 700; color: #f1f5f9">
-            {{ unit.unit_number }}
-          </span>
-        </td>
-        <td>
-          <span style="color: #4ade80; font-weight: 600">
-            KES {{ "{:,.0f}".format(unit.monthly_rent) }}
-          </span>
-        </td>
-        <td style="color: #94a3b8">
-          KES {{ "{:,.0f}".format(unit.monthly_rent / 30) }}/day
-        </td>
-        <td>
-          {% if unit.is_occupied %}
-          <span class="badge-green">Occupied</span>
-          {% else %}
-          <span class="badge-gray">Vacant</span>
-          {% endif %}
-        </td>
-        <td>
-          <button
-            class="btn btn-secondary btn-sm"
-            onclick="openRentModal('{{ unit.id }}', '{{ unit.unit_number }}', {{ unit.monthly_rent }})"
-          >
-            Update Rent
-          </button>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Unit</th>
+          <th>Monthly Rent</th>
+          <th>Daily Cost</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for unit in units %}
+        <tr>
+          <td>
+            <span style="font-size: 18px; font-weight: 700; color: #f1f5f9"
+              >{{ unit.unit_number }}</span
+            >
+          </td>
+          <td>
+            <span style="color: #4ade80; font-weight: 600"
+              >KES {{ "{:,.0f}".format(unit.monthly_rent) }}</span
+            >
+          </td>
+          <td style="color: #94a3b8">
+            KES {{ "{:,.0f}".format(unit.monthly_rent / 30) }}/day
+          </td>
+          <td>
+            {% if unit.is_occupied %}
+            <span class="badge-green">Occupied</span>
+            {% else %}
+            <span class="badge-gray">Vacant</span>
+            {% endif %}
+          </td>
+          <td>
+            <button
+              class="btn btn-secondary btn-sm"
+              onclick="openRentModal('{{ unit.id }}', '{{ unit.unit_number }}', {{ unit.monthly_rent }})"
+            >
+              Update Rent
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
   {% else %}
   <p style="color: #64748b; font-size: 14px">
     No units added yet. Click <strong>Add Unit</strong> to get started.
@@ -225,7 +227,6 @@ page_title %}Units{% endblock %} {% block content %}
     document.getElementById("rentAmount").value = currentRent;
     document.getElementById("rentModal").classList.add("open");
   }
-
   document.querySelectorAll(".modal").forEach((modal) => {
     modal.addEventListener("click", (e) => {
       if (e.target === modal) modal.classList.remove("open");

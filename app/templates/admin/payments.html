@@ -31,6 +31,8 @@ page_title %}Payments{% endblock %} {% block content %}
       justify-content: space-between;
       align-items: center;
       margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
     "
   >
     <div class="card-title" style="margin: 0">All Payments</div>
@@ -47,57 +49,60 @@ page_title %}Payments{% endblock %} {% block content %}
         color: #e2e8f0;
         font-size: 13px;
         outline: none;
-        width: 260px;
+        width: 100%;
+        max-width: 260px;
       "
     />
   </div>
 
   {% if payments %}
-  <table id="paymentsTable">
-    <thead>
-      <tr>
-        <th>Tenant</th>
-        <th>Unit</th>
-        <th>Amount</th>
-        <th>Days Granted</th>
-        <th>M-Pesa Ref</th>
-        <th>Date & Time</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for p in payments %}
-      <tr>
-        <td>
-          <div style="font-weight: 500; color: #f1f5f9">
-            {{ p.tenants.full_name if p.tenants else "—" }}
-          </div>
-        </td>
-        <td>
-          <span style="font-weight: 600; color: #4ade80">
-            {{ p.units.unit_number if p.units else p.account_ref or "—" }}
-          </span>
-        </td>
-        <td>
-          <span style="color: #4ade80; font-weight: 600">
-            KES {{ "{:,.0f}".format(p.amount) }}
-          </span>
-        </td>
-        <td>
-          <span class="badge-yellow">
-            {{ "{:.1f}".format(p.days_granted) }} days
-          </span>
-        </td>
-        <td style="font-family: monospace; font-size: 13px; color: #94a3b8">
-          {{ p.mpesa_ref or "—" }}
-        </td>
-        <td style="color: #64748b; font-size: 12px">
-          {{ p.paid_at[:16].replace("T", " ") if p.paid_at else "—" }}
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
+  <div class="table-wrap">
+    <table id="paymentsTable">
+      <thead>
+        <tr>
+          <th>Tenant</th>
+          <th>Unit</th>
+          <th>Amount</th>
+          <th>Days Granted</th>
+          <th>M-Pesa Ref</th>
+          <th>Date & Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in payments %}
+        <tr>
+          <td>
+            <div style="font-weight: 500; color: #f1f5f9">
+              {{ p.tenants.full_name if p.tenants else "—" }}
+            </div>
+          </td>
+          <td>
+            <span style="font-weight: 600; color: #4ade80"
+              >{{ p.units.unit_number if p.units else p.account_ref or "—"
+              }}</span
+            >
+          </td>
+          <td>
+            <span style="color: #4ade80; font-weight: 600"
+              >KES {{ "{:,.0f}".format(p.amount) }}</span
+            >
+          </td>
+          <td>
+            <span class="badge-yellow"
+              >{{ "{:.1f}".format(p.days_granted) }} days</span
+            >
+          </td>
+          <td style="font-family: monospace; font-size: 13px; color: #94a3b8">
+            {{ p.mpesa_ref or "—" }}
+          </td>
+          <td style="color: #64748b; font-size: 12px">
+            {{ p.paid_at[:16].replace("T", " ") if p.paid_at else "—" }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
   <div style="margin-top: 16px; font-size: 12px; color: #4a5568">
     Showing {{ payments|length }} payment(s)
   </div>
@@ -123,8 +128,7 @@ page_title %}Payments{% endblock %} {% block content %}
 >
   <div class="card-title" style="color: #fbbf24">Test Payment Simulator</div>
   <p style="font-size: 13px; color: #94a3b8; margin-bottom: 16px">
-    Simulate an M-Pesa payment for testing without real money. Use this to
-    verify the payment-to-access flow.
+    Simulate an M-Pesa payment for testing without real money.
   </p>
   <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap">
     <div class="form-group" style="margin: 0; flex: 1; min-width: 120px">
@@ -181,14 +185,14 @@ page_title %}Payments{% endblock %} {% block content %}
       if (res.ok) {
         result.style.display = "block";
         result.innerHTML = `
-                <div class="alert alert-success">
-                    ✅ Payment simulated successfully!<br>
-                    <strong>Tenant:</strong> ${data.tenant}<br>
-                    <strong>Unit:</strong> ${data.unit}<br>
-                    <strong>Amount:</strong> KES ${data.amount_paid.toLocaleString()}<br>
-                    <strong>Days Granted:</strong> ${data.days_granted}<br>
-                    <strong>Access Until:</strong> ${data.access_valid_until.replace("T", " ").slice(0, 16)}
-                </div>`;
+          <div class="alert alert-success">
+            ✅ Payment simulated successfully!<br>
+            <strong>Tenant:</strong> ${data.tenant}<br>
+            <strong>Unit:</strong> ${data.unit}<br>
+            <strong>Amount:</strong> KES ${data.amount_paid.toLocaleString()}<br>
+            <strong>Days Granted:</strong> ${data.days_granted}<br>
+            <strong>Access Until:</strong> ${data.access_valid_until.replace("T", " ").slice(0, 16)}
+          </div>`;
         setTimeout(() => location.reload(), 3000);
       } else {
         result.style.display = "block";

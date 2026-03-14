@@ -28,80 +28,82 @@ page_title %}Tenants{% endblock %} {% block content %}
 <div class="card">
   <div class="card-title">All Tenants</div>
   {% if tenants %}
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Unit</th>
-        <th>Monthly Rent</th>
-        <th>Access Expires</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for tenant in tenants %}
-      <tr>
-        <td>
-          <div style="font-weight: 500; color: #f1f5f9">
-            {{ tenant.full_name }}
-          </div>
-          <div style="font-size: 12px; color: #64748b">
-            {{ tenant.phone or "No phone" }}
-          </div>
-        </td>
-        <td>
-          {% if tenant.units %}
-          <span style="font-weight: 600; color: #4ade80"
-            >{{ tenant.units.unit_number }}</span
-          >
-          {% else %}
-          <span style="color: #64748b">—</span>
-          {% endif %}
-        </td>
-        <td>
-          {% if tenant.units %} KES {{
-          "{:,.0f}".format(tenant.units.monthly_rent) }} {% else %}—{% endif %}
-        </td>
-        <td>
-          {% if tenant.access_expires_at %} {{
-          tenant.access_expires_at[:16].replace("T"," ") }} {% else %}
-          <span style="color: #64748b">Never paid</span>
-          {% endif %}
-        </td>
-        <td>
-          {% if tenant.is_active %}
-          <span class="badge-green">Active</span>
-          {% else %}
-          <span class="badge-red">Inactive</span>
-          {% endif %}
-        </td>
-        <td>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap">
-            <button
-              class="btn btn-secondary btn-sm"
-              onclick="openPinModal('{{ tenant.id }}', '{{ tenant.full_name }}')"
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Unit</th>
+          <th>Monthly Rent</th>
+          <th>Access Expires</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tenant in tenants %}
+        <tr>
+          <td>
+            <div style="font-weight: 500; color: #f1f5f9">
+              {{ tenant.full_name }}
+            </div>
+            <div style="font-size: 12px; color: #64748b">
+              {{ tenant.phone or "No phone" }}
+            </div>
+          </td>
+          <td>
+            {% if tenant.units %}
+            <span style="font-weight: 600; color: #4ade80"
+              >{{ tenant.units.unit_number }}</span
             >
-              Change PIN
-            </button>
-            {% if tenant.is_active %}
-            <form
-              method="POST"
-              action="/admin/tenants/deactivate"
-              onsubmit="return confirm('Deactivate {{ tenant.full_name }}? This will revoke access.')"
-            >
-              <input type="hidden" name="tenant_id" value="{{ tenant.id }}" />
-              <button type="submit" class="btn btn-danger btn-sm">
-                Deactivate
-              </button>
-            </form>
+            {% else %}
+            <span style="color: #64748b">—</span>
             {% endif %}
-          </div>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+          </td>
+          <td>
+            {% if tenant.units %}KES {{
+            "{:,.0f}".format(tenant.units.monthly_rent) }}{% else %}—{% endif %}
+          </td>
+          <td>
+            {% if tenant.access_expires_at %} {{
+            tenant.access_expires_at[:16].replace("T"," ") }} {% else %}
+            <span style="color: #64748b">Never paid</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if tenant.is_active %}
+            <span class="badge-green">Active</span>
+            {% else %}
+            <span class="badge-red">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap">
+              <button
+                class="btn btn-secondary btn-sm"
+                onclick="openPinModal('{{ tenant.id }}', '{{ tenant.full_name }}')"
+              >
+                Change PIN
+              </button>
+              {% if tenant.is_active %}
+              <form
+                method="POST"
+                action="/admin/tenants/deactivate"
+                onsubmit="return confirm('Deactivate {{ tenant.full_name }}? This will revoke access.')"
+              >
+                <input type="hidden" name="tenant_id" value="{{ tenant.id }}" />
+                <button type="submit" class="btn btn-danger btn-sm">
+                  Deactivate
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
   {% else %}
   <p style="color: #64748b; font-size: 14px">
     No tenants added yet. Click <strong>Add Tenant</strong> to get started.
@@ -127,7 +129,6 @@ page_title %}Tenants{% endblock %} {% block content %}
         >✕</span
       >
     </div>
-
     {% if not units %}
     <div class="alert alert-error">
       No vacant units available.
@@ -255,8 +256,6 @@ page_title %}Tenants{% endblock %} {% block content %}
     document.getElementById("pinTenantName").textContent = tenantName;
     document.getElementById("pinModal").classList.add("open");
   }
-
-  // Close modals on outside click
   document.querySelectorAll(".modal").forEach((modal) => {
     modal.addEventListener("click", (e) => {
       if (e.target === modal) modal.classList.remove("open");

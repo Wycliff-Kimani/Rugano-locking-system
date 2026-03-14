@@ -10,20 +10,19 @@ block page_title %}Access Logs{% endblock %} {% block content %}
   <div class="stat-card">
     <div class="label">Granted</div>
     <div class="value green">
-      {{ logs|selectattr('event_type', 'equalto', 'granted')|list|length }}
+      {{ logs|selectattr('event_type','equalto','granted')|list|length }}
     </div>
   </div>
   <div class="stat-card">
     <div class="label">Denied</div>
     <div class="value red">
-      {{ logs|selectattr('event_type', 'equalto', 'denied')|list|length }}
+      {{ logs|selectattr('event_type','equalto','denied')|list|length }}
     </div>
   </div>
   <div class="stat-card">
     <div class="label">Manual Unlocks</div>
     <div class="value yellow">
-      {{ logs|selectattr('event_type', 'equalto', 'manual_unlock')|list|length
-      }}
+      {{ logs|selectattr('event_type','equalto','manual_unlock')|list|length }}
     </div>
   </div>
 </div>
@@ -36,10 +35,12 @@ block page_title %}Access Logs{% endblock %} {% block content %}
       justify-content: space-between;
       align-items: center;
       margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
     "
   >
     <div class="card-title" style="margin: 0">Access Event Log</div>
-    <div style="display: flex; gap: 10px; align-items: center">
+    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap">
       <select
         id="filterType"
         onchange="filterLogs()"
@@ -71,58 +72,60 @@ block page_title %}Access Logs{% endblock %} {% block content %}
           color: #e2e8f0;
           font-size: 13px;
           outline: none;
-          width: 220px;
+          width: 100%;
+          max-width: 220px;
         "
       />
     </div>
   </div>
 
   {% if logs %}
-  <table id="logsTable">
-    <thead>
-      <tr>
-        <th>Time</th>
-        <th>Unit</th>
-        <th>Tenant</th>
-        <th>Event</th>
-        <th>Triggered By</th>
-        <th>Note</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for log in logs %}
-      <tr data-event="{{ log.event_type }}">
-        <td style="color: #64748b; font-size: 12px; white-space: nowrap">
-          {{ log.logged_at[:16].replace("T", " ") if log.logged_at else "—" }}
-        </td>
-        <td>
-          <span style="font-weight: 600; color: #4ade80">
-            {{ log.units.unit_number if log.units else "—" }}
-          </span>
-        </td>
-        <td style="color: #cbd5e1">
-          {{ log.tenants.full_name if log.tenants else "—" }}
-        </td>
-        <td>
-          {% if log.event_type == "granted" %}
-          <span class="badge-green">✅ Granted</span>
-          {% elif log.event_type == "denied" %}
-          <span class="badge-red">🔒 Denied</span>
-          {% elif log.event_type == "manual_unlock" %}
-          <span class="badge-yellow">🔓 Manual</span>
-          {% else %}
-          <span class="badge-gray">{{ log.event_type }}</span>
-          {% endif %}
-        </td>
-        <td style="color: #94a3b8; font-size: 13px">
-          {{ log.triggered_by or "—" }}
-        </td>
-        <td style="color: #64748b; font-size: 12px">{{ log.note or "—" }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
+  <div class="table-wrap">
+    <table id="logsTable">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Unit</th>
+          <th>Tenant</th>
+          <th>Event</th>
+          <th>Triggered By</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr data-event="{{ log.event_type }}">
+          <td style="color: #64748b; font-size: 12px; white-space: nowrap">
+            {{ log.logged_at[:16].replace("T"," ") if log.logged_at else "—" }}
+          </td>
+          <td>
+            <span style="font-weight: 600; color: #4ade80"
+              >{{ log.units.unit_number if log.units else "—" }}</span
+            >
+          </td>
+          <td style="color: #cbd5e1">
+            {{ log.tenants.full_name if log.tenants else "—" }}
+          </td>
+          <td>
+            {% if log.event_type == "granted" %}
+            <span class="badge-green">✅ Granted</span>
+            {% elif log.event_type == "denied" %}
+            <span class="badge-red">🔒 Denied</span>
+            {% elif log.event_type == "manual_unlock" %}
+            <span class="badge-yellow">🔓 Manual</span>
+            {% else %}
+            <span class="badge-gray">{{ log.event_type }}</span>
+            {% endif %}
+          </td>
+          <td style="color: #94a3b8; font-size: 13px">
+            {{ log.triggered_by or "—" }}
+          </td>
+          <td style="color: #64748b; font-size: 12px">{{ log.note or "—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
   <div style="margin-top: 16px; font-size: 12px; color: #4a5568">
     Showing last {{ logs|length }} event(s)
   </div>
@@ -146,7 +149,6 @@ block page_title %}Access Logs{% endblock %} {% block content %}
     const type = document.getElementById("filterType").value.toLowerCase();
     const search = document.getElementById("searchInput").value.toLowerCase();
     const rows = document.querySelectorAll("#logsTable tbody tr");
-
     rows.forEach((row) => {
       const matchType = !type || row.dataset.event === type;
       const matchSearch =
