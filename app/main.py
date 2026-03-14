@@ -15,7 +15,11 @@ app = FastAPI(
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://rugano-locking-system.onrender.com",
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -30,7 +34,7 @@ templates = Jinja2Templates(directory="app/templates")
 # Routers
 app.include_router(admin.router, prefix="/admin", tags=["Admin"])
 app.include_router(tenants.router, prefix="/tenants", tags=["Tenants"])
-app.include_router(payments.router, prefix="/api/mpesa", tags=["Payments"])
+app.include_router(payments.router, prefix="/api/pay", tags=["Payments"])
 app.include_router(access.router, prefix="/door", tags=["Door Access"])
 
 # Root redirect
