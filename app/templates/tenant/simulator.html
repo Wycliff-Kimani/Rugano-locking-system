@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
     <title>Rugano - Door Simulator</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
@@ -31,16 +31,16 @@
       }
       .logo {
         text-align: center;
-        margin-bottom: 32px;
+        margin-bottom: 24px;
       }
       .logo img {
-        width: 56px;
-        height: 50px;
+        width: 48px;
+        height: 42px;
         object-fit: contain;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
       }
       .logo h1 {
-        font-size: 22px;
+        font-size: 20px;
         font-weight: 700;
         color: #4ade80;
         letter-spacing: 3px;
@@ -56,25 +56,24 @@
         background: #1a1d2e;
         border: 2px solid #2d3748;
         border-radius: 20px;
-        padding: 28px;
+        padding: 24px;
         box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
       }
-
       .door-status {
         text-align: center;
-        padding: 20px;
+        padding: 18px;
         border-radius: 12px;
-        margin-bottom: 24px;
+        margin-bottom: 20px;
         background: #0f1117;
         border: 1px solid #2d3748;
         transition: all 0.4s;
       }
       .door-status .icon {
-        font-size: 48px;
-        margin-bottom: 8px;
+        font-size: 42px;
+        margin-bottom: 6px;
       }
       .door-status .status-text {
-        font-size: 22px;
+        font-size: 20px;
         font-weight: 700;
         letter-spacing: 2px;
       }
@@ -100,7 +99,7 @@
       }
 
       .form-group {
-        margin-bottom: 16px;
+        margin-bottom: 14px;
       }
       .form-group label {
         display: block;
@@ -110,8 +109,7 @@
         text-transform: uppercase;
         letter-spacing: 1px;
       }
-      .form-group select,
-      .form-group input {
+      .form-group select {
         width: 100%;
         padding: 11px 14px;
         background: #0f1117;
@@ -123,45 +121,44 @@
         font-family: "Inter", sans-serif;
         transition: border-color 0.2s;
       }
-      .form-group select:focus,
-      .form-group input:focus {
+      .form-group select:focus {
         border-color: #4ade80;
       }
 
-      /* KEYPAD */
       .keypad {
-        margin: 20px 0;
+        margin: 16px 0;
       }
       .keypad-display {
         background: #0f1117;
         border: 1px solid #2d3748;
         border-radius: 8px;
-        padding: 12px 16px;
-        font-size: 24px;
+        padding: 10px 16px;
+        font-size: 22px;
         letter-spacing: 8px;
         text-align: center;
         color: #4ade80;
-        margin-bottom: 14px;
-        min-height: 52px;
+        margin-bottom: 12px;
+        min-height: 48px;
         font-family: monospace;
       }
       .keypad-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
+        gap: 8px;
       }
       .key {
-        padding: 16px;
+        padding: 15px;
         background: #0f1117;
         border: 1px solid #2d3748;
         border-radius: 10px;
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 600;
         color: #f1f5f9;
         cursor: pointer;
         text-align: center;
         transition: all 0.15s;
         user-select: none;
+        -webkit-tap-highlight-color: transparent;
       }
       .key:hover {
         background: #2d3748;
@@ -169,7 +166,8 @@
         color: #4ade80;
       }
       .key:active {
-        transform: scale(0.95);
+        transform: scale(0.93);
+        background: #2d3748;
       }
       .key.clear {
         color: #f87171;
@@ -183,16 +181,19 @@
         background: #4ade80;
         color: #0f1117;
         border-color: #4ade80;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 700;
       }
       .key.enter:hover {
         background: #22c55e;
       }
+      .key.enter:active {
+        background: #16a34a;
+      }
 
       .admin-link {
         text-align: center;
-        margin-top: 24px;
+        margin-top: 20px;
         font-size: 12px;
         color: #374151;
       }
@@ -216,6 +217,21 @@
           opacity: 0.3;
         }
       }
+
+      @media (max-width: 480px) {
+        body {
+          padding: 16px;
+          align-items: flex-start;
+          padding-top: 24px;
+        }
+        .door-device {
+          padding: 18px;
+        }
+        .key {
+          padding: 14px;
+          font-size: 17px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -225,16 +241,12 @@
         <h1>RUGANO</h1>
         <p>Smart Door Lock</p>
       </div>
-
       <div class="door-device">
-        <!-- STATUS DISPLAY -->
         <div class="door-status" id="statusBox">
           <div class="icon">🚪</div>
           <div class="status-text" id="statusText">READY</div>
           <div class="status-sub" id="statusSub">Select unit and enter PIN</div>
         </div>
-
-        <!-- UNIT SELECT -->
         <div class="form-group">
           <label>Unit</label>
           <select id="unitSelect" onchange="resetStatus()">
@@ -246,12 +258,8 @@
             {% endfor %}
           </select>
         </div>
-
-        <!-- KEYPAD -->
         <div class="keypad">
-          <div class="keypad-display" id="pinDisplay">
-            <span id="pinDots"></span>
-          </div>
+          <div class="keypad-display"><span id="pinDots"></span></div>
           <div class="keypad-grid">
             <div class="key" onclick="pressKey('1')">1</div>
             <div class="key" onclick="pressKey('2')">2</div>
@@ -268,42 +276,35 @@
           </div>
         </div>
       </div>
-
       <div class="admin-link">
         <a href="/admin/dashboard">← Admin Dashboard</a>
       </div>
     </div>
-
     <script>
       let pin = "";
       const MAX_PIN = 8;
-
-      function pressKey(digit) {
+      function pressKey(d) {
         if (pin.length >= MAX_PIN) return;
-        pin += digit;
+        pin += d;
         updateDisplay();
         resetStatus();
       }
-
       function clearPin() {
         pin = pin.slice(0, -1);
         updateDisplay();
       }
-
       function updateDisplay() {
         document.getElementById("pinDots").textContent =
           "●".repeat(pin.length) || "";
       }
-
       function resetStatus() {
         const box = document.getElementById("statusBox");
         box.className = "door-status";
         document.getElementById("statusText").textContent = "READY";
         document.getElementById("statusSub").textContent =
           "Select unit and enter PIN";
-        document.querySelector(".icon").textContent = "🚪";
+        document.querySelector("#statusBox .icon").textContent = "🚪";
       }
-
       async function submitPin() {
         const unit = document.getElementById("unitSelect").value;
         if (!unit) {
@@ -324,9 +325,7 @@
           );
           return;
         }
-
         showStatus("loading", "⏳", "CHECKING...", "Please wait...");
-
         try {
           const res = await fetch("/door/check", {
             method: "POST",
@@ -334,7 +333,6 @@
             body: JSON.stringify({ unit_number: unit, pin: pin }),
           });
           const data = await res.json();
-
           if (data.access === "granted") {
             showStatus(
               "granted",
@@ -353,14 +351,10 @@
         } catch (e) {
           showStatus("denied", "❌", "ERROR", "Connection error. Try again.");
         }
-
         pin = "";
         updateDisplay();
-
-        // Reset after 4 seconds
         setTimeout(resetStatus, 4000);
       }
-
       function showStatus(type, icon, text, sub) {
         const box = document.getElementById("statusBox");
         box.className = `door-status ${type}`;
@@ -368,8 +362,6 @@
         document.getElementById("statusText").textContent = text;
         document.getElementById("statusSub").textContent = sub;
       }
-
-      // Keyboard support
       document.addEventListener("keydown", (e) => {
         if (e.key >= "0" && e.key <= "9") pressKey(e.key);
         else if (e.key === "Backspace") clearPin();

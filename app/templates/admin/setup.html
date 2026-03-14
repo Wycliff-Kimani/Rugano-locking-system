@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
     <title>Rugano - First Time Setup</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
@@ -52,7 +52,6 @@
         text-transform: uppercase;
         margin-top: 4px;
       }
-
       .card {
         background: #1a1d2e;
         border: 1px solid #2d3748;
@@ -77,13 +76,12 @@
         color: #f1f5f9;
         margin-bottom: 6px;
       }
-      .card p {
+      .card > p {
         font-size: 13px;
         color: #64748b;
         margin-bottom: 28px;
         line-height: 1.6;
       }
-
       .section-divider {
         font-size: 11px;
         color: #4a5568;
@@ -163,6 +161,17 @@
         color: #86efac;
         line-height: 1.6;
       }
+
+      @media (max-width: 480px) {
+        .card {
+          padding: 24px;
+        }
+        body {
+          padding: 16px;
+          align-items: flex-start;
+          padding-top: 32px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -172,22 +181,18 @@
         <h1>RUGANO</h1>
         <p>Prepaid Door Lock System</p>
       </div>
-
       <div class="card">
         <div class="step-badge">First Time Setup</div>
         <h2>Create Your Account</h2>
         <p>
           Set up your landlord account and property. This can only be done once.
         </p>
-
         <div class="info-box">
           ℹ️ After setup, you can add units and tenants from the dashboard. This
           account will have full landlord access.
         </div>
-
         <form method="POST" action="/admin/setup">
           <div class="section-divider">Your Account</div>
-
           <div class="form-group">
             <label>Full Name</label>
             <input
@@ -216,9 +221,7 @@
             />
             <div class="hint">Minimum 8 characters recommended</div>
           </div>
-
           <div class="section-divider">Your Property</div>
-
           <div class="form-group">
             <label>Property Name</label>
             <input
@@ -239,11 +242,9 @@
               placeholder="e.g. Thika Road, Nairobi"
             />
           </div>
-
           <button type="submit" class="btn">Create Account & Continue →</button>
         </form>
       </div>
-
       <div class="login-link">
         Already have an account? <a href="/admin/login">Sign in →</a>
       </div>
