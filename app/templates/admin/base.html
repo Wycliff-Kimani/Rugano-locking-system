@@ -206,8 +206,15 @@
         border-top: 1px solid #2d3748;
         z-index: 100;
         align-items: center;
-        justify-content: space-around;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
         padding: 0 4px;
+        gap: 0;
+      }
+      .bottom-nav::-webkit-scrollbar {
+        display: none;
       }
       .bottom-nav a {
         display: flex;
@@ -218,10 +225,21 @@
         text-decoration: none;
         font-size: 10px;
         font-weight: 500;
-        padding: 6px 10px;
+        padding: 6px 8px;
         border-radius: 10px;
         transition: all 0.2s;
-        min-width: 52px;
+        min-width: 48px;
+        flex-shrink: 0;
+      }
+      .bottom-nav a .bnav-icon {
+        font-size: 20px;
+        line-height: 1;
+      }
+      .bottom-nav a.active {
+        color: #4ade80;
+      }
+      .bottom-nav a:hover {
+        color: #4ade80;
       }
       .bottom-nav a .bnav-icon {
         font-size: 20px;
