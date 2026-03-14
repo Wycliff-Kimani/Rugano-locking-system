@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 router = APIRouter()
 
-@router.post("/callback")
+@router.post("/confirm")
 async def mpesa_callback(request: Request):
     try:
         body = await request.json()
