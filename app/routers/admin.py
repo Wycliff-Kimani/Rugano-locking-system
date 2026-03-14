@@ -32,6 +32,7 @@ async def login_page(request: Request):
 
 @router.post("/login")
 async def login(request: Request, email: str = Form(...), password: str = Form(...)):
+    email = email.lower().strip()
     result = supabase.table("users").select("*").eq("email", email).execute()
     if not result.data:
         return templates.TemplateResponse("admin/login.html", {
