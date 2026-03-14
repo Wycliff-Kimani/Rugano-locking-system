@@ -1,0 +1,266 @@
+{% extends "admin/base.html" %} {% block title %}Tenants{% endblock %} {% block
+page_title %}Tenants{% endblock %} {% block content %}
+
+<div
+  style="
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  "
+>
+  <p style="color: #64748b; font-size: 14px">
+    Manage tenants, PINs and access.
+  </p>
+  <button
+    class="btn btn-primary"
+    onclick="document.getElementById('addModal').classList.add('open')"
+  >
+    + Add Tenant
+  </button>
+</div>
+
+{% if request.query_params.get('success') %}
+<div class="alert alert-success">✅ Changes saved successfully.</div>
+{% endif %}
+
+<!-- TENANTS TABLE -->
+<div class="card">
+  <div class="card-title">All Tenants</div>
+  {% if tenants %}
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Unit</th>
+        <th>Monthly Rent</th>
+        <th>Access Expires</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for tenant in tenants %}
+      <tr>
+        <td>
+          <div style="font-weight: 500; color: #f1f5f9">
+            {{ tenant.full_name }}
+          </div>
+          <div style="font-size: 12px; color: #64748b">
+            {{ tenant.phone or "No phone" }}
+          </div>
+        </td>
+        <td>
+          {% if tenant.units %}
+          <span style="font-weight: 600; color: #4ade80"
+            >{{ tenant.units.unit_number }}</span
+          >
+          {% else %}
+          <span style="color: #64748b">—</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if tenant.units %} KES {{
+          "{:,.0f}".format(tenant.units.monthly_rent) }} {% else %}—{% endif %}
+        </td>
+        <td>
+          {% if tenant.access_expires_at %} {{
+          tenant.access_expires_at[:16].replace("T"," ") }} {% else %}
+          <span style="color: #64748b">Never paid</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if tenant.is_active %}
+          <span class="badge-green">Active</span>
+          {% else %}
+          <span class="badge-red">Inactive</span>
+          {% endif %}
+        </td>
+        <td>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap">
+            <button
+              class="btn btn-secondary btn-sm"
+              onclick="openPinModal('{{ tenant.id }}', '{{ tenant.full_name }}')"
+            >
+              Change PIN
+            </button>
+            {% if tenant.is_active %}
+            <form
+              method="POST"
+              action="/admin/tenants/deactivate"
+              onsubmit="return confirm('Deactivate {{ tenant.full_name }}? This will revoke access.')"
+            >
+              <input type="hidden" name="tenant_id" value="{{ tenant.id }}" />
+              <button type="submit" class="btn btn-danger btn-sm">
+                Deactivate
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color: #64748b; font-size: 14px">
+    No tenants added yet. Click <strong>Add Tenant</strong> to get started.
+  </p>
+  {% endif %}
+</div>
+
+<!-- ADD TENANT MODAL -->
+<div class="modal" id="addModal">
+  <div class="modal-box">
+    <div
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      "
+    >
+      <div class="modal-title" style="margin: 0">Add New Tenant</div>
+      <span
+        class="modal-close"
+        onclick="document.getElementById('addModal').classList.remove('open')"
+        >✕</span
+      >
+    </div>
+
+    {% if not units %}
+    <div class="alert alert-error">
+      No vacant units available.
+      <a href="/admin/units" style="color: #f87171">Add units first →</a>
+    </div>
+    {% else %}
+    <form method="POST" action="/admin/tenants/add">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input
+          type="text"
+          name="full_name"
+          placeholder="Jane Wanjiku"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label>Phone <span style="color: #4a5568">(optional)</span></label>
+        <input type="text" name="phone" placeholder="0712345678" />
+      </div>
+      <div class="form-group">
+        <label>Unit</label>
+        <select name="unit_id" required>
+          <option value="">Select vacant unit</option>
+          {% for unit in units %}
+          <option value="{{ unit.id }}">
+            {{ unit.unit_number }} — KES {{ "{:,.0f}".format(unit.monthly_rent)
+            }}/mo
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>PIN (6-8 digits)</label>
+        <input
+          type="text"
+          name="pin"
+          placeholder="e.g. 123456"
+          minlength="6"
+          maxlength="8"
+          pattern="[0-9]{6,8}"
+          title="PIN must be 6 to 8 digits"
+          required
+        />
+        <div style="font-size: 11px; color: #4a5568; margin-top: 4px">
+          This PIN is permanent until changed. Share it only with the tenant.
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px; margin-top: 8px">
+        <button type="submit" class="btn btn-primary" style="flex: 1">
+          Add Tenant
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          onclick="document.getElementById('addModal').classList.remove('open')"
+          style="flex: 1"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<!-- CHANGE PIN MODAL -->
+<div class="modal" id="pinModal">
+  <div class="modal-box">
+    <div
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      "
+    >
+      <div class="modal-title" style="margin: 0">Change PIN</div>
+      <span
+        class="modal-close"
+        onclick="document.getElementById('pinModal').classList.remove('open')"
+        >✕</span
+      >
+    </div>
+    <p style="color: #64748b; font-size: 13px; margin-bottom: 20px">
+      Changing PIN for:
+      <strong id="pinTenantName" style="color: #f1f5f9"></strong>
+    </p>
+    <form method="POST" action="/admin/tenants/change-pin">
+      <input type="hidden" name="tenant_id" id="pinTenantId" />
+      <div class="form-group">
+        <label>New PIN (6-8 digits)</label>
+        <input
+          type="text"
+          name="new_pin"
+          placeholder="Enter new PIN"
+          minlength="6"
+          maxlength="8"
+          pattern="[0-9]{6,8}"
+          title="PIN must be 6 to 8 digits"
+          required
+        />
+      </div>
+      <div style="display: flex; gap: 12px; margin-top: 8px">
+        <button type="submit" class="btn btn-primary" style="flex: 1">
+          Save New PIN
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          onclick="document.getElementById('pinModal').classList.remove('open')"
+          style="flex: 1"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<script>
+  function openPinModal(tenantId, tenantName) {
+    document.getElementById("pinTenantId").value = tenantId;
+    document.getElementById("pinTenantName").textContent = tenantName;
+    document.getElementById("pinModal").classList.add("open");
+  }
+
+  // Close modals on outside click
+  document.querySelectorAll(".modal").forEach((modal) => {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.classList.remove("open");
+    });
+  });
+</script>
+{% endblock %}

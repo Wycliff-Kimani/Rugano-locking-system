@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+jinja2
+python-dotenv
+psycopg2-binary
+supabase
+bcrypt==4.0.1
+python-multipart
+httpx
+python-jose[cryptography]

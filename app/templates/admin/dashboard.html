@@ -1,0 +1,194 @@
+{% extends "admin/base.html" %} {% block title %}Dashboard{% endblock %} {%
+block page_title %}Dashboard{% endblock %} {% block content %}
+
+<!-- STATS -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="label">Total Units</div>
+    <div class="value">{{ total_units }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Active Tenants</div>
+    <div class="value">{{ total_tenants }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Access Active</div>
+    <div class="value green">{{ active_access }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Access Expired</div>
+    <div class="value red">{{ expired_access }}</div>
+  </div>
+</div>
+
+<!-- UNITS STATUS GRID -->
+<div class="card">
+  <div class="card-title">Unit Access Status</div>
+  {% if units %}
+  <div
+    style="
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+    "
+  >
+    {% for unit in units %}
+    <div
+      id="unit-{{ unit.unit_number }}"
+      style="
+        background: #0f1117;
+        border: 1px solid #2d3748;
+        border-radius: 10px;
+        padding: 16px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+      "
+      onclick="checkUnitStatus('{{ unit.unit_number }}', this)"
+    >
+      <div style="font-size: 24px; margin-bottom: 8px">🚪</div>
+      <div style="font-size: 16px; font-weight: 700; color: #f1f5f9">
+        {{ unit.unit_number }}
+      </div>
+      <div style="font-size: 11px; color: #64748b; margin-top: 4px">
+        KES {{ "{:,.0f}".format(unit.monthly_rent) }}/mo
+      </div>
+      <div
+        class="unit-status"
+        style="margin-top: 8px; font-size: 11px; color: #64748b"
+      >
+        Click to check
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p style="color: #64748b; font-size: 14px">
+    No units added yet.
+    <a href="/admin/units" style="color: #4ade80">Add units →</a>
+  </p>
+  {% endif %}
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px">
+  <!-- RECENT PAYMENTS -->
+  <div class="card">
+    <div class="card-title">Recent Payments</div>
+    {% if recent_payments %}
+    <table>
+      <thead>
+        <tr>
+          <th>Unit</th>
+          <th>Amount</th>
+          <th>Days</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in recent_payments %}
+        <tr>
+          <td>{{ p.account_ref or "—" }}</td>
+          <td style="color: #4ade80">KES {{ "{:,.0f}".format(p.amount) }}</td>
+          <td>{{ p.days_granted }} days</td>
+          <td style="color: #64748b; font-size: 12px">
+            {{ p.paid_at[:10] if p.paid_at else "—" }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div style="margin-top: 16px">
+      <a href="/admin/payments" style="color: #4ade80; font-size: 13px"
+        >View all payments →</a
+      >
+    </div>
+    {% else %}
+    <p style="color: #64748b; font-size: 14px">No payments recorded yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- RECENT ACCESS LOGS -->
+  <div class="card">
+    <div class="card-title">Recent Access Events</div>
+    {% if recent_logs %}
+    <table>
+      <thead>
+        <tr>
+          <th>Unit</th>
+          <th>Event</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in recent_logs %}
+        <tr>
+          <td>{{ log.units.unit_number if log.units else "—" }}</td>
+          <td>
+            {% if log.event_type == "granted" %}
+            <span class="badge-green">Granted</span>
+            {% elif log.event_type == "denied" %}
+            <span class="badge-red">Denied</span>
+            {% elif log.event_type == "manual_unlock" %}
+            <span class="badge-yellow">Manual</span>
+            {% else %}
+            <span class="badge-gray">{{ log.event_type }}</span>
+            {% endif %}
+          </td>
+          <td style="color: #64748b; font-size: 12px">
+            {{ log.logged_at[:16].replace("T"," ") if log.logged_at else "—" }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div style="margin-top: 16px">
+      <a href="/admin/logs" style="color: #4ade80; font-size: 13px"
+        >View all logs →</a
+      >
+    </div>
+    {% else %}
+    <p style="color: #64748b; font-size: 14px">
+      No access events recorded yet.
+    </p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script>
+  async function checkUnitStatus(unitNumber, el) {
+    const statusEl = el.querySelector(".unit-status");
+    statusEl.textContent = "Checking...";
+    statusEl.style.color = "#64748b";
+
+    try {
+      const res = await fetch(`/door/status/${unitNumber}`);
+      const data = await res.json();
+
+      if (data.status === "unlocked") {
+        el.style.borderColor = "#4ade80";
+        statusEl.textContent = `✅ Active — ${data.days_remaining}d left`;
+        statusEl.style.color = "#4ade80";
+      } else if (data.status === "locked") {
+        el.style.borderColor = "#f87171";
+        statusEl.textContent = "🔒 Locked";
+        statusEl.style.color = "#f87171";
+      } else if (data.status === "vacant") {
+        el.style.borderColor = "#64748b";
+        statusEl.textContent = "— Vacant";
+        statusEl.style.color = "#64748b";
+      }
+    } catch (e) {
+      statusEl.textContent = "Error";
+      statusEl.style.color = "#f87171";
+    }
+  }
+
+  // Auto-check all units on page load
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('[id^="unit-"]').forEach((el) => {
+      const unitNumber = el.id.replace("unit-", "");
+      checkUnitStatus(unitNumber, el);
+    });
+  });
+</script>
+{% endblock %}

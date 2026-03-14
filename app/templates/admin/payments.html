@@ -1,0 +1,207 @@
+{% extends "admin/base.html" %} {% block title %}Payments{% endblock %} {% block
+page_title %}Payments{% endblock %} {% block content %}
+
+<!-- SUMMARY STATS -->
+<div class="stats-grid" style="grid-template-columns: repeat(3, 1fr)">
+  <div class="stat-card">
+    <div class="label">Total Payments</div>
+    <div class="value">{{ payments|length }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Total Collected</div>
+    <div class="value green">
+      KES {{ "{:,.0f}".format(payments|sum(attribute='amount')) if payments else
+      0 }}
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Total Days Granted</div>
+    <div class="value yellow">
+      {{ "{:,.1f}".format(payments|sum(attribute='days_granted')) if payments
+      else 0 }}
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENTS TABLE -->
+<div class="card">
+  <div
+    style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    "
+  >
+    <div class="card-title" style="margin: 0">All Payments</div>
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Search unit or M-Pesa ref..."
+      oninput="filterTable()"
+      style="
+        padding: 8px 14px;
+        background: #0f1117;
+        border: 1px solid #2d3748;
+        border-radius: 8px;
+        color: #e2e8f0;
+        font-size: 13px;
+        outline: none;
+        width: 260px;
+      "
+    />
+  </div>
+
+  {% if payments %}
+  <table id="paymentsTable">
+    <thead>
+      <tr>
+        <th>Tenant</th>
+        <th>Unit</th>
+        <th>Amount</th>
+        <th>Days Granted</th>
+        <th>M-Pesa Ref</th>
+        <th>Date & Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in payments %}
+      <tr>
+        <td>
+          <div style="font-weight: 500; color: #f1f5f9">
+            {{ p.tenants.full_name if p.tenants else "—" }}
+          </div>
+        </td>
+        <td>
+          <span style="font-weight: 600; color: #4ade80">
+            {{ p.units.unit_number if p.units else p.account_ref or "—" }}
+          </span>
+        </td>
+        <td>
+          <span style="color: #4ade80; font-weight: 600">
+            KES {{ "{:,.0f}".format(p.amount) }}
+          </span>
+        </td>
+        <td>
+          <span class="badge-yellow">
+            {{ "{:.1f}".format(p.days_granted) }} days
+          </span>
+        </td>
+        <td style="font-family: monospace; font-size: 13px; color: #94a3b8">
+          {{ p.mpesa_ref or "—" }}
+        </td>
+        <td style="color: #64748b; font-size: 12px">
+          {{ p.paid_at[:16].replace("T", " ") if p.paid_at else "—" }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div style="margin-top: 16px; font-size: 12px; color: #4a5568">
+    Showing {{ payments|length }} payment(s)
+  </div>
+
+  {% else %}
+  <div style="text-align: center; padding: 48px 0">
+    <div style="font-size: 48px; margin-bottom: 16px">💳</div>
+    <p style="color: #64748b; font-size: 14px">No payments recorded yet.</p>
+    <p style="color: #4a5568; font-size: 13px; margin-top: 8px">
+      Payments will appear here once tenants pay via M-Pesa.
+    </p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- TEST PAYMENT -->
+<div
+  class="card"
+  style="
+    border-color: rgba(251, 191, 36, 0.2);
+    background: rgba(251, 191, 36, 0.02);
+  "
+>
+  <div class="card-title" style="color: #fbbf24">Test Payment Simulator</div>
+  <p style="font-size: 13px; color: #94a3b8; margin-bottom: 16px">
+    Simulate an M-Pesa payment for testing without real money. Use this to
+    verify the payment-to-access flow.
+  </p>
+  <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap">
+    <div class="form-group" style="margin: 0; flex: 1; min-width: 120px">
+      <label>Unit Number</label>
+      <input type="text" id="simUnit" placeholder="e.g. A1" />
+    </div>
+    <div class="form-group" style="margin: 0; flex: 1; min-width: 120px">
+      <label>Amount (KES)</label>
+      <input type="number" id="simAmount" placeholder="e.g. 1000" min="1" />
+    </div>
+    <button class="btn btn-primary" onclick="simulatePayment()" id="simBtn">
+      Simulate Payment
+    </button>
+  </div>
+  <div id="simResult" style="margin-top: 16px; display: none"></div>
+</div>
+
+{% endblock %} {% block scripts %}
+<script>
+  function filterTable() {
+    const input = document.getElementById("searchInput").value.toLowerCase();
+    const rows = document.querySelectorAll("#paymentsTable tbody tr");
+    rows.forEach((row) => {
+      row.style.display = row.textContent.toLowerCase().includes(input)
+        ? ""
+        : "none";
+    });
+  }
+
+  async function simulatePayment() {
+    const unit = document.getElementById("simUnit").value.trim();
+    const amount = document.getElementById("simAmount").value.trim();
+    const btn = document.getElementById("simBtn");
+    const result = document.getElementById("simResult");
+
+    if (!unit || !amount) {
+      result.style.display = "block";
+      result.innerHTML =
+        '<div class="alert alert-error">Enter unit number and amount.</div>';
+      return;
+    }
+
+    btn.textContent = "Processing...";
+    btn.disabled = true;
+
+    try {
+      const res = await fetch("/api/mpesa/simulate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ unit_number: unit, amount: parseFloat(amount) }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        result.style.display = "block";
+        result.innerHTML = `
+                <div class="alert alert-success">
+                    ✅ Payment simulated successfully!<br>
+                    <strong>Tenant:</strong> ${data.tenant}<br>
+                    <strong>Unit:</strong> ${data.unit}<br>
+                    <strong>Amount:</strong> KES ${data.amount_paid.toLocaleString()}<br>
+                    <strong>Days Granted:</strong> ${data.days_granted}<br>
+                    <strong>Access Until:</strong> ${data.access_valid_until.replace("T", " ").slice(0, 16)}
+                </div>`;
+        setTimeout(() => location.reload(), 3000);
+      } else {
+        result.style.display = "block";
+        result.innerHTML = `<div class="alert alert-error">❌ ${data.detail || "Payment failed"}</div>`;
+      }
+    } catch (e) {
+      result.style.display = "block";
+      result.innerHTML =
+        '<div class="alert alert-error">❌ Network error. Try again.</div>';
+    }
+
+    btn.textContent = "Simulate Payment";
+    btn.disabled = false;
+  }
+</script>
+{% endblock %}

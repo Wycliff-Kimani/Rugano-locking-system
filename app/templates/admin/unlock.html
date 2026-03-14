@@ -1,0 +1,113 @@
+{% extends "admin/base.html" %} {% block title %}Manual Unlock{% endblock %} {%
+block page_title %}Manual Unlock{% endblock %} {% block content %}
+
+<div class="card" style="max-width: 560px">
+  <div class="card-title">Remote Door Unlock</div>
+  <p
+    style="
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    "
+  >
+    Use this to unlock a tenant's door remotely. Tenant authorization is
+    required and every unlock is permanently logged with your name and
+    timestamp.
+  </p>
+
+  {% if error %}
+  <div class="alert alert-error">❌ {{ error }}</div>
+  {% endif %} {% if success %}
+  <div class="alert alert-success">{{ success }}</div>
+  {% endif %}
+
+  <form method="POST" action="/admin/unlock">
+    <div class="form-group">
+      <label>Select Tenant</label>
+      <select name="tenant_id" required>
+        <option value="">Choose tenant...</option>
+        {% for tenant in tenants %}
+        <option value="{{ tenant.id }}">
+          {{ tenant.full_name }} {% if tenant.units %} — Unit {{
+          tenant.units.unit_number }}{% endif %}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Note <span style="color: #4a5568">(optional)</span></label>
+      <input
+        type="text"
+        name="note"
+        placeholder="e.g. Tenant locked out at night"
+      />
+    </div>
+
+    <div class="form-group">
+      <div
+        style="
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          background: #0f1117;
+          border: 1px solid #2d3748;
+          border-radius: 8px;
+          padding: 14px;
+        "
+      >
+        <input
+          type="checkbox"
+          name="tenant_authorized"
+          value="true"
+          id="authCheck"
+          style="
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            accent-color: #4ade80;
+            cursor: pointer;
+          "
+        />
+        <label
+          for="authCheck"
+          style="
+            font-size: 13px;
+            color: #94a3b8;
+            cursor: pointer;
+            line-height: 1.6;
+          "
+        >
+          I confirm the tenant has authorized this unlock. I understand this
+          action is permanently logged.
+        </label>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="width: 100%">
+      🔓 Unlock Door
+    </button>
+  </form>
+</div>
+
+<div
+  class="card"
+  style="
+    max-width: 560px;
+    border-color: rgba(248, 113, 113, 0.2);
+    background: rgba(248, 113, 113, 0.02);
+  "
+>
+  <div class="card-title" style="color: #f87171">Important Rules</div>
+  <ul
+    style="font-size: 13px; color: #94a3b8; line-height: 2; padding-left: 20px"
+  >
+    <li>Never unlock without tenant's knowledge or consent</li>
+    <li>Every unlock is logged with your account, timestamp and note</li>
+    <li>Logs cannot be deleted or edited</li>
+    <li>This does not extend the tenant's access period</li>
+  </ul>
+</div>
+
+{% endblock %}

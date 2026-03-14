@@ -1,0 +1,235 @@
+{% extends "admin/base.html" %} {% block title %}Units{% endblock %} {% block
+page_title %}Units{% endblock %} {% block content %}
+
+<div
+  style="
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  "
+>
+  <p style="color: #64748b; font-size: 14px">
+    Manage rental units and monthly rent amounts.
+  </p>
+  <button
+    class="btn btn-primary"
+    onclick="document.getElementById('addModal').classList.add('open')"
+  >
+    + Add Unit
+  </button>
+</div>
+
+<!-- UNITS TABLE -->
+<div class="card">
+  <div class="card-title">All Units</div>
+  {% if units %}
+  <table>
+    <thead>
+      <tr>
+        <th>Unit</th>
+        <th>Monthly Rent</th>
+        <th>Daily Cost</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for unit in units %}
+      <tr>
+        <td>
+          <span style="font-size: 18px; font-weight: 700; color: #f1f5f9">
+            {{ unit.unit_number }}
+          </span>
+        </td>
+        <td>
+          <span style="color: #4ade80; font-weight: 600">
+            KES {{ "{:,.0f}".format(unit.monthly_rent) }}
+          </span>
+        </td>
+        <td style="color: #94a3b8">
+          KES {{ "{:,.0f}".format(unit.monthly_rent / 30) }}/day
+        </td>
+        <td>
+          {% if unit.is_occupied %}
+          <span class="badge-green">Occupied</span>
+          {% else %}
+          <span class="badge-gray">Vacant</span>
+          {% endif %}
+        </td>
+        <td>
+          <button
+            class="btn btn-secondary btn-sm"
+            onclick="openRentModal('{{ unit.id }}', '{{ unit.unit_number }}', {{ unit.monthly_rent }})"
+          >
+            Update Rent
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color: #64748b; font-size: 14px">
+    No units added yet. Click <strong>Add Unit</strong> to get started.
+  </p>
+  {% endif %}
+</div>
+
+<!-- INFO BOX -->
+<div
+  class="card"
+  style="
+    border-color: rgba(74, 222, 128, 0.2);
+    background: rgba(74, 222, 128, 0.03);
+  "
+>
+  <div class="card-title" style="color: #4ade80">
+    How Access Calculation Works
+  </div>
+  <p style="font-size: 13px; color: #86efac; line-height: 1.8">
+    <strong>Formula:</strong> daily_cost = monthly_rent ÷ 30 &nbsp;|&nbsp;
+    days_granted = amount_paid ÷ daily_cost
+    <br />
+    <strong>Example:</strong> Unit with KES 6,000/month rent → daily cost = KES
+    200. Tenant pays KES 1,000 → gets 5 days access.
+    <br />
+    Partial payments are always accepted and extend access from the current
+    expiry date.
+  </p>
+</div>
+
+<!-- ADD UNIT MODAL -->
+<div class="modal" id="addModal">
+  <div class="modal-box">
+    <div
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      "
+    >
+      <div class="modal-title" style="margin: 0">Add New Unit</div>
+      <span
+        class="modal-close"
+        onclick="document.getElementById('addModal').classList.remove('open')"
+        >✕</span
+      >
+    </div>
+    <form method="POST" action="/admin/units/add">
+      <div class="form-group">
+        <label>Unit Number</label>
+        <input
+          type="text"
+          name="unit_number"
+          placeholder="e.g. A1, B3, 101"
+          required
+          maxlength="10"
+        />
+        <div style="font-size: 11px; color: #4a5568; margin-top: 4px">
+          This is what tenants enter when paying via M-Pesa. Keep it short and
+          simple.
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Monthly Rent (KES)</label>
+        <input
+          type="number"
+          name="monthly_rent"
+          placeholder="e.g. 6000"
+          min="100"
+          step="100"
+          required
+        />
+      </div>
+      <div style="display: flex; gap: 12px; margin-top: 8px">
+        <button type="submit" class="btn btn-primary" style="flex: 1">
+          Add Unit
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          onclick="document.getElementById('addModal').classList.remove('open')"
+          style="flex: 1"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- UPDATE RENT MODAL -->
+<div class="modal" id="rentModal">
+  <div class="modal-box">
+    <div
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      "
+    >
+      <div class="modal-title" style="margin: 0">Update Monthly Rent</div>
+      <span
+        class="modal-close"
+        onclick="document.getElementById('rentModal').classList.remove('open')"
+        >✕</span
+      >
+    </div>
+    <p style="color: #64748b; font-size: 13px; margin-bottom: 20px">
+      Unit: <strong id="rentUnitNumber" style="color: #f1f5f9"></strong>
+    </p>
+    <form method="POST" action="/admin/units/update-rent">
+      <input type="hidden" name="unit_id" id="rentUnitId" />
+      <div class="form-group">
+        <label>New Monthly Rent (KES)</label>
+        <input
+          type="number"
+          name="monthly_rent"
+          id="rentAmount"
+          min="100"
+          step="100"
+          required
+        />
+        <div style="font-size: 11px; color: #fbbf24; margin-top: 4px">
+          ⚠️ Changing rent affects future access calculations only. Existing
+          access_expires_at is not affected.
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px; margin-top: 8px">
+        <button type="submit" class="btn btn-primary" style="flex: 1">
+          Update Rent
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          onclick="
+            document.getElementById('rentModal').classList.remove('open')
+          "
+          style="flex: 1"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %} {% block scripts %}
+<script>
+  function openRentModal(unitId, unitNumber, currentRent) {
+    document.getElementById("rentUnitId").value = unitId;
+    document.getElementById("rentUnitNumber").textContent = unitNumber;
+    document.getElementById("rentAmount").value = currentRent;
+    document.getElementById("rentModal").classList.add("open");
+  }
+
+  document.querySelectorAll(".modal").forEach((modal) => {
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.classList.remove("open");
+    });
+  });
+</script>
+{% endblock %}

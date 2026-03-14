@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+    <title>Rugano - First Time Setup</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        background: #0f1117;
+        color: #e2e8f0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .container {
+        width: 100%;
+        max-width: 480px;
+      }
+      .logo {
+        text-align: center;
+        margin-bottom: 32px;
+      }
+      .logo img {
+        width: 64px;
+        height: 56px;
+        object-fit: contain;
+        margin-bottom: 10px;
+      }
+      .logo h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #4ade80;
+        letter-spacing: 3px;
+      }
+      .logo p {
+        font-size: 11px;
+        color: #64748b;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        margin-top: 4px;
+      }
+
+      .card {
+        background: #1a1d2e;
+        border: 1px solid #2d3748;
+        border-radius: 16px;
+        padding: 36px;
+      }
+      .step-badge {
+        display: inline-block;
+        background: rgba(74, 222, 128, 0.1);
+        color: #4ade80;
+        border: 1px solid rgba(74, 222, 128, 0.2);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+      .card h2 {
+        font-size: 20px;
+        font-weight: 600;
+        color: #f1f5f9;
+        margin-bottom: 6px;
+      }
+      .card p {
+        font-size: 13px;
+        color: #64748b;
+        margin-bottom: 28px;
+        line-height: 1.6;
+      }
+
+      .section-divider {
+        font-size: 11px;
+        color: #4a5568;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin: 24px 0 16px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #2d3748;
+      }
+      .form-group {
+        margin-bottom: 16px;
+      }
+      .form-group label {
+        display: block;
+        font-size: 13px;
+        color: #94a3b8;
+        margin-bottom: 6px;
+        font-weight: 500;
+      }
+      .form-group input {
+        width: 100%;
+        padding: 11px 14px;
+        background: #0f1117;
+        border: 1px solid #2d3748;
+        border-radius: 8px;
+        color: #e2e8f0;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+        font-family: "Inter", sans-serif;
+      }
+      .form-group input:focus {
+        border-color: #4ade80;
+      }
+      .form-group .hint {
+        font-size: 11px;
+        color: #4a5568;
+        margin-top: 4px;
+      }
+      .btn {
+        width: 100%;
+        padding: 13px;
+        background: #4ade80;
+        color: #0f1117;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+        font-family: "Inter", sans-serif;
+        margin-top: 8px;
+      }
+      .btn:hover {
+        background: #22c55e;
+      }
+      .login-link {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 13px;
+        color: #64748b;
+      }
+      .login-link a {
+        color: #4ade80;
+        text-decoration: none;
+      }
+      .login-link a:hover {
+        text-decoration: underline;
+      }
+      .info-box {
+        background: rgba(74, 222, 128, 0.05);
+        border: 1px solid rgba(74, 222, 128, 0.15);
+        border-radius: 8px;
+        padding: 14px;
+        margin-bottom: 24px;
+        font-size: 13px;
+        color: #86efac;
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo">
+        <img src="/static/images/rugano-logo.jpg" alt="Rugano" />
+        <h1>RUGANO</h1>
+        <p>Prepaid Door Lock System</p>
+      </div>
+
+      <div class="card">
+        <div class="step-badge">First Time Setup</div>
+        <h2>Create Your Account</h2>
+        <p>
+          Set up your landlord account and property. This can only be done once.
+        </p>
+
+        <div class="info-box">
+          ℹ️ After setup, you can add units and tenants from the dashboard. This
+          account will have full landlord access.
+        </div>
+
+        <form method="POST" action="/admin/setup">
+          <div class="section-divider">Your Account</div>
+
+          <div class="form-group">
+            <label>Full Name</label>
+            <input
+              type="text"
+              name="full_name"
+              placeholder="John Kamau"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input
+              type="email"
+              name="email"
+              placeholder="landlord@email.com"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="Create a strong password"
+              required
+            />
+            <div class="hint">Minimum 8 characters recommended</div>
+          </div>
+
+          <div class="section-divider">Your Property</div>
+
+          <div class="form-group">
+            <label>Property Name</label>
+            <input
+              type="text"
+              name="property_name"
+              placeholder="e.g. Rugano Apartments Block A"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label
+              >Property Address
+              <span style="color: #4a5568">(optional)</span></label
+            >
+            <input
+              type="text"
+              name="property_address"
+              placeholder="e.g. Thika Road, Nairobi"
+            />
+          </div>
+
+          <button type="submit" class="btn">Create Account & Continue →</button>
+        </form>
+      </div>
+
+      <div class="login-link">
+        Already have an account? <a href="/admin/login">Sign in →</a>
+      </div>
+    </div>
+  </body>
+</html>

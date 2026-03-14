@@ -1,0 +1,158 @@
+{% extends "admin/base.html" %} {% block title %}Access Logs{% endblock %} {%
+block page_title %}Access Logs{% endblock %} {% block content %}
+
+<!-- SUMMARY -->
+<div class="stats-grid" style="grid-template-columns: repeat(4, 1fr)">
+  <div class="stat-card">
+    <div class="label">Total Events</div>
+    <div class="value">{{ logs|length }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Granted</div>
+    <div class="value green">
+      {{ logs|selectattr('event_type', 'equalto', 'granted')|list|length }}
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Denied</div>
+    <div class="value red">
+      {{ logs|selectattr('event_type', 'equalto', 'denied')|list|length }}
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Manual Unlocks</div>
+    <div class="value yellow">
+      {{ logs|selectattr('event_type', 'equalto', 'manual_unlock')|list|length
+      }}
+    </div>
+  </div>
+</div>
+
+<!-- LOGS TABLE -->
+<div class="card">
+  <div
+    style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    "
+  >
+    <div class="card-title" style="margin: 0">Access Event Log</div>
+    <div style="display: flex; gap: 10px; align-items: center">
+      <select
+        id="filterType"
+        onchange="filterLogs()"
+        style="
+          padding: 8px 14px;
+          background: #0f1117;
+          border: 1px solid #2d3748;
+          border-radius: 8px;
+          color: #e2e8f0;
+          font-size: 13px;
+          outline: none;
+        "
+      >
+        <option value="">All Events</option>
+        <option value="granted">Granted</option>
+        <option value="denied">Denied</option>
+        <option value="manual_unlock">Manual Unlock</option>
+      </select>
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search unit or tenant..."
+        oninput="filterLogs()"
+        style="
+          padding: 8px 14px;
+          background: #0f1117;
+          border: 1px solid #2d3748;
+          border-radius: 8px;
+          color: #e2e8f0;
+          font-size: 13px;
+          outline: none;
+          width: 220px;
+        "
+      />
+    </div>
+  </div>
+
+  {% if logs %}
+  <table id="logsTable">
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Unit</th>
+        <th>Tenant</th>
+        <th>Event</th>
+        <th>Triggered By</th>
+        <th>Note</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log in logs %}
+      <tr data-event="{{ log.event_type }}">
+        <td style="color: #64748b; font-size: 12px; white-space: nowrap">
+          {{ log.logged_at[:16].replace("T", " ") if log.logged_at else "—" }}
+        </td>
+        <td>
+          <span style="font-weight: 600; color: #4ade80">
+            {{ log.units.unit_number if log.units else "—" }}
+          </span>
+        </td>
+        <td style="color: #cbd5e1">
+          {{ log.tenants.full_name if log.tenants else "—" }}
+        </td>
+        <td>
+          {% if log.event_type == "granted" %}
+          <span class="badge-green">✅ Granted</span>
+          {% elif log.event_type == "denied" %}
+          <span class="badge-red">🔒 Denied</span>
+          {% elif log.event_type == "manual_unlock" %}
+          <span class="badge-yellow">🔓 Manual</span>
+          {% else %}
+          <span class="badge-gray">{{ log.event_type }}</span>
+          {% endif %}
+        </td>
+        <td style="color: #94a3b8; font-size: 13px">
+          {{ log.triggered_by or "—" }}
+        </td>
+        <td style="color: #64748b; font-size: 12px">{{ log.note or "—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div style="margin-top: 16px; font-size: 12px; color: #4a5568">
+    Showing last {{ logs|length }} event(s)
+  </div>
+
+  {% else %}
+  <div style="text-align: center; padding: 48px 0">
+    <div style="font-size: 48px; margin-bottom: 16px">📋</div>
+    <p style="color: #64748b; font-size: 14px">
+      No access events recorded yet.
+    </p>
+    <p style="color: #4a5568; font-size: 13px; margin-top: 8px">
+      Events appear here when tenants enter PINs on the door simulator.
+    </p>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %} {% block scripts %}
+<script>
+  function filterLogs() {
+    const type = document.getElementById("filterType").value.toLowerCase();
+    const search = document.getElementById("searchInput").value.toLowerCase();
+    const rows = document.querySelectorAll("#logsTable tbody tr");
+
+    rows.forEach((row) => {
+      const matchType = !type || row.dataset.event === type;
+      const matchSearch =
+        !search || row.textContent.toLowerCase().includes(search);
+      row.style.display = matchType && matchSearch ? "" : "none";
+    });
+  }
+</script>
+{% endblock %}
