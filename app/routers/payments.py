@@ -23,6 +23,14 @@ async def mpesa_callback(request: Request):
     except Exception:
         raise HTTPException(status_code=400, detail="Missing required fields")
 
+    # Check for duplicate transaction
+    existing = supabase.table("payments").select("id").eq("mpesa_ref", trans_id).execute()
+    if existing.data:
+        return JSONResponse({
+            "ResultCode": 0,
+            "ResultDesc": "Already processed"
+        })
+
     if not bill_ref:
         return JSONResponse({"ResultCode": 1, "ResultDesc": "Missing account reference"})
 
@@ -100,6 +108,15 @@ async def test_callback():
     GET /api/mpesa/test-callback?unit=A1&amount=1000
     """
     return {"message": "Use POST /api/mpesa/simulate to test payments"}
+
+
+@router.post("/validate")
+async def mpesa_validate(request: Request):
+    # Accept all payments in V1
+    return JSONResponse({
+        "ResultCode": 0,
+        "ResultDesc": "Accepted"
+    })
 
 
 @router.post("/simulate")
