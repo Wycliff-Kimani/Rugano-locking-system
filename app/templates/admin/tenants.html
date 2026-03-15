@@ -79,6 +79,14 @@ page_title %}Tenants{% endblock %} {% block content %}
           </td>
           <td>
             <div style="display: flex; gap: 8px; flex-wrap: wrap">
+              {% if tenant.is_active and tenant.phone %}
+              <button
+                class="btn btn-primary btn-sm"
+                onclick="openPayModal('{{ tenant.id }}', '{{ tenant.full_name }}', '{{ tenant.phone }}', '{{ tenant.units.unit_number if tenant.units else '' }}')"
+              >
+                💳 Request Payment
+              </button>
+              {% endif %}
               <button
                 class="btn btn-secondary btn-sm"
                 onclick="openPinModal('{{ tenant.id }}', '{{ tenant.full_name }}')"
@@ -109,6 +117,64 @@ page_title %}Tenants{% endblock %} {% block content %}
     No tenants added yet. Click <strong>Add Tenant</strong> to get started.
   </p>
   {% endif %}
+</div>
+
+<!-- REQUEST PAYMENT MODAL -->
+<div class="modal" id="payModal">
+  <div class="modal-box">
+    <div
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      "
+    >
+      <div class="modal-title" style="margin: 0">💳 Request Payment</div>
+      <span class="modal-close" onclick="closePayModal()">✕</span>
+    </div>
+    <p style="color: #64748b; font-size: 13px; margin-bottom: 20px">
+      Sending STK push to:
+      <strong id="payTenantName" style="color: #f1f5f9"></strong><br />
+      Phone:
+      <span id="payTenantPhone" style="color: #4ade80"></span> &nbsp;|&nbsp;
+      Unit: <span id="payUnitNumber" style="color: #4ade80"></span>
+    </p>
+
+    <div id="payResult" style="display: none; margin-bottom: 16px"></div>
+
+    <div class="form-group">
+      <label>Amount (KES)</label>
+      <input
+        type="number"
+        id="payAmount"
+        placeholder="e.g. 3000"
+        min="1"
+        step="100"
+      />
+      <div style="font-size: 11px; color: #4a5568; margin-top: 4px">
+        Tenant will receive an M-Pesa prompt on their phone to complete payment.
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 12px; margin-top: 8px">
+      <button
+        class="btn btn-primary"
+        style="flex: 1"
+        onclick="sendPaymentRequest()"
+        id="payBtn"
+      >
+        Send M-Pesa Prompt
+      </button>
+      <button
+        class="btn btn-secondary"
+        style="flex: 1"
+        onclick="closePayModal()"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- ADD TENANT MODAL -->
@@ -251,11 +317,81 @@ page_title %}Tenants{% endblock %} {% block content %}
 
 {% endblock %} {% block scripts %}
 <script>
+  let currentPhone = "";
+  let currentUnit = "";
+
+  function openPayModal(tenantId, tenantName, phone, unitNumber) {
+    currentPhone = phone;
+    currentUnit = unitNumber;
+    document.getElementById("payTenantName").textContent = tenantName;
+    document.getElementById("payTenantPhone").textContent = phone;
+    document.getElementById("payUnitNumber").textContent = unitNumber;
+    document.getElementById("payAmount").value = "";
+    document.getElementById("payResult").style.display = "none";
+    document.getElementById("payModal").classList.add("open");
+  }
+
+  function closePayModal() {
+    document.getElementById("payModal").classList.remove("open");
+  }
+
+  async function sendPaymentRequest() {
+    const amount = document.getElementById("payAmount").value;
+    const btn = document.getElementById("payBtn");
+    const result = document.getElementById("payResult");
+
+    if (!amount || amount <= 0) {
+      result.style.display = "block";
+      result.innerHTML =
+        '<div class="alert alert-error">Please enter a valid amount.</div>';
+      return;
+    }
+
+    btn.textContent = "Sending...";
+    btn.disabled = true;
+    result.style.display = "none";
+
+    try {
+      const res = await fetch("/api/pay/initiate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          unit_number: currentUnit,
+          amount: parseFloat(amount),
+          phone: currentPhone,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        result.style.display = "block";
+        result.innerHTML = `
+          <div class="alert alert-success">
+            ✅ M-Pesa prompt sent!<br>
+            <strong>${data.tenant}</strong> should check their phone now.<br>
+            <span style="font-size:12px; color:#86efac;">Reference: ${data.reference}</span>
+          </div>`;
+      } else {
+        result.style.display = "block";
+        result.innerHTML = `<div class="alert alert-error">❌ ${data.detail || "Failed to send prompt"}</div>`;
+      }
+    } catch (e) {
+      result.style.display = "block";
+      result.innerHTML =
+        '<div class="alert alert-error">❌ Network error. Try again.</div>';
+    }
+
+    btn.textContent = "Send M-Pesa Prompt";
+    btn.disabled = false;
+  }
+
   function openPinModal(tenantId, tenantName) {
     document.getElementById("pinTenantId").value = tenantId;
     document.getElementById("pinTenantName").textContent = tenantName;
     document.getElementById("pinModal").classList.add("open");
   }
+
   document.querySelectorAll(".modal").forEach((modal) => {
     modal.addEventListener("click", (e) => {
       if (e.target === modal) modal.classList.remove("open");
