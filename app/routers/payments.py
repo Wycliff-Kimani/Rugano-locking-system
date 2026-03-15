@@ -180,7 +180,9 @@ async def initiate_payment(request: Request):
         phone = "254" + phone[1:]
 
     citapay_key = os.getenv("CITAPAY_SECRET_KEY", "")
-    citapay_base = os.getenv("CITAPAY_BASE_URL", "https://sandbox.citapayapi.citatech.cloud/api/v1")
+    if not citapay_key:
+        raise HTTPException(status_code=500, detail="CITAPAY_SECRET_KEY not configured")
+    citapay_base = os.getenv("CITAPAY_BASE_URL", "https://citapayapi.citatech.cloud/api/v1")
 
     async with httpx.AsyncClient() as client:
         response = await client.post(
