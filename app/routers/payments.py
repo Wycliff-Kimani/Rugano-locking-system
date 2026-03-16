@@ -7,8 +7,10 @@ import hmac
 import hashlib
 import httpx
 import os
+import logging
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 # ─── SHARED CREDIT LOGIC ─────────────────────────────────────────────────────
@@ -56,7 +58,7 @@ def credit_access(unit_number: str, amount: float, transaction_ref: str):
 
     new_expiry = base + timedelta(days=days_granted)
 
-    # Update tenant
+    # Update tenant access
     supabase.table("tenants").update({
         "access_expires_at": new_expiry.isoformat()
     }).eq("id", tenant["id"]).execute()
@@ -105,17 +107,13 @@ async def citapay_webhook(request: Request):
             hashlib.sha256
         ).hexdigest()
         if not hmac.compare_digest(expected, signature):
-            print("=== CITAPAY SIGNATURE MISMATCH ===")
+            logger.warning("Citapay webhook signature mismatch")
             return JSONResponse({"error": "Invalid signature"}, status_code=400)
 
     try:
         body = json.loads(raw_body)
     except Exception:
         return JSONResponse({"error": "Invalid JSON"}, status_code=400)
-
-    print("=== CITAPAY WEBHOOK ===")
-    print(json.dumps(body, indent=2))
-    print("=== END ===")
 
     event = body.get("event")
 
@@ -130,7 +128,7 @@ async def citapay_webhook(request: Request):
     unit_number = metadata.get("unit_number", "").strip().upper()
 
     if not unit_number:
-        print(f"=== NO UNIT NUMBER IN METADATA. Full data: {data} ===")
+        logger.error(f"Citapay webhook missing unit_number in metadata. ref={transaction_ref}")
         return JSONResponse({"error": "unit_number missing from metadata"}, status_code=400)
 
     if amount <= 0:
@@ -139,13 +137,13 @@ async def citapay_webhook(request: Request):
     success, result = credit_access(unit_number, amount, transaction_ref)
 
     if not success:
-        print(f"=== CREDIT FAILED: {result} ===")
+        logger.error(f"Credit access failed: {result}. ref={transaction_ref}")
         return JSONResponse({"error": result}, status_code=400)
 
     if result == "already_processed":
         return JSONResponse({"received": True, "note": "Duplicate ignored"})
 
-    print(f"=== PAYMENT CREDITED: {result} ===")
+    logger.info(f"Payment credited. unit={unit_number} amount={amount} ref={transaction_ref}")
     return JSONResponse({"received": True, "result": result})
 
 
@@ -161,7 +159,6 @@ async def initiate_payment(request: Request):
     if not unit_number or not amount or not phone:
         raise HTTPException(status_code=400, detail="unit_number, amount and phone are required")
 
-    # Verify unit and tenant exist
     unit_result = supabase.table("units").select("*").eq("unit_number", unit_number).execute()
     if not unit_result.data:
         raise HTTPException(status_code=404, detail=f"Unit {unit_number} not found")
@@ -182,6 +179,7 @@ async def initiate_payment(request: Request):
     citapay_key = os.getenv("CITAPAY_SECRET_KEY", "")
     if not citapay_key:
         raise HTTPException(status_code=500, detail="CITAPAY_SECRET_KEY not configured")
+
     citapay_base = os.getenv("CITAPAY_BASE_URL", "https://citapayapi.citatech.cloud/api/v1")
 
     async with httpx.AsyncClient() as client:
