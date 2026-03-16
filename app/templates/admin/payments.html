@@ -175,7 +175,7 @@ page_title %}Payments{% endblock %} {% block content %}
     btn.disabled = true;
 
     try {
-      const res = await fetch("/api/mpesa/simulate", {
+      const res = await fetch("/api/pay/simulate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ unit_number: unit, amount: parseFloat(amount) }),
@@ -189,7 +189,7 @@ page_title %}Payments{% endblock %} {% block content %}
             ✅ Payment simulated successfully!<br>
             <strong>Tenant:</strong> ${data.tenant}<br>
             <strong>Unit:</strong> ${data.unit}<br>
-            <strong>Amount:</strong> KES ${data.amount_paid.toLocaleString()}<br>
+            <strong>Amount:</strong> KES ${data.amount.toLocaleString()}<br>
             <strong>Days Granted:</strong> ${data.days_granted}<br>
             <strong>Access Until:</strong> ${data.access_valid_until.replace("T", " ").slice(0, 16)}
           </div>`;
